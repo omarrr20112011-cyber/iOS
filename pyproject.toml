@@ -4,17 +4,20 @@ bundle = "com.example"
 version = "0.1.0"
 author = "Developer"
 url = "https://example.com"
-license = "MIT"
 description = "My Pythonista App"
 
 [tool.briefcase.app.myproject]
 formal_name = "My Project"
 description = "My Pythonista App"
-sources = ["."]
-# Если вашему скрипту нужны библиотеки (например, requests), добавьте их ниже в кавычках через запятую
+sources = ["myproject"]
+# Здесь указываем папку, которую создали выше
 requires = []
 
 [tool.briefcase.app.myproject.ios]
 requires = [
     "toga-iOS",
 ]
+
+# Исправляем ошибку с лицензией из логов
+[tool.briefcase.app.myproject.license]
+text = "MIT"
