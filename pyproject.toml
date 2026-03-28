@@ -1,23 +1,27 @@
 [tool.briefcase]
-project_name = "MyProject"
-bundle = "com.example"
-version = "0.1.0"
-author = "Developer"
-url = "https://example.com"
-description = "My Pythonista App"
+project_name = "skullhub"
+bundle = "com.skullstudio"
+version = "0.0.1"
+author = "Skull Studio"
+url = "https://skullstudio.com"
+license = "MIT"
+description = "Skull Hub iOS App"
 
-[tool.briefcase.app.myproject]
-formal_name = "My Project"
-description = "My Pythonista App"
+[tool.briefcase.app.skullhub]
+formal_name = "Skull Hub"
+description = "Skull Hub iOS App"
 sources = ["myproject"]
-# Здесь указываем папку, которую создали выше
-requires = []
-
-[tool.briefcase.app.myproject.ios]
+# Указываем вашу иконку (без расширения .png)
+icon = "logo"
+# Если вашему коду нужны библиотеки, добавьте их в список ниже
 requires = [
     "toga-iOS",
 ]
 
-# Исправляем ошибку с лицензией из логов
-[tool.briefcase.app.myproject.license]
+[tool.briefcase.app.skullhub.ios]
+requires = [
+    "toga-iOS",
+]
+
+[tool.briefcase.app.skullhub.license]
 text = "MIT"
