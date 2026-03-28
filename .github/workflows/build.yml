@@ -20,17 +20,18 @@ jobs:
 
       - name: Create iOS App
         run: |
-          # Создаем структуру проекта Xcode
           briefcase create ios --no-input
-          # Компилируем приложение
-          briefcase build ios --no-input
+
+      - name: Build iOS App for Device
+        run: |
+          # Флаг --device собирает для iPhone (ARM64)
+          # CODE_SIGNING_ALLOWED=NO позволяет собрать проект без сертификата Apple
+          briefcase build ios --device --no-input -- -- -codeSignIdentity="" -codeSignStyle=Manual CODE_SIGNING_ALLOWED=NO
 
       - name: Upload App Package
         uses: actions/upload-artifact@v4
         with:
           name: ios-app-bundle
-          # Ищем все файлы .app и .ipa во всех подпапках build
           path: |
             build/**/*.app
-            build/**/*.ipa
           if-no-files-found: error
