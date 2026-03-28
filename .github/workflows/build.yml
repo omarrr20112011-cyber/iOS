@@ -20,17 +20,31 @@ jobs:
 
       - name: Create iOS App
         run: |
+          # Только создаем проект Xcode, не запуская сборку через Briefcase
           briefcase create ios --no-input
 
-      - name: Build iOS App
+      - name: Build with Xcode Direct
         run: |
-          # Собираем проект, отключая проверку сертификатов на уровне системы
-          briefcase build ios --no-input --device -- -codeSignIdentity="" -codeSignStyle=Manual CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO AD_HOC_CODE_SIGNING_ALLOWED=YES
+          # Находим проект и собираем его стандартными средствами macOS
+          PROJECT_PATH=$(find build -name "*.xcodeproj" | head -n 1)
+          PROJECT_DIR=$(dirname "$PROJECT_PATH")
+          PROJECT_NAME=$(basename "$PROJECT_PATH" .xcodeproj)
+          
+          cd "$PROJECT_DIR"
+          xcodebuild build \
+            -project "$PROJECT_NAME.xcodeproj" \
+            -scheme "$PROJECT_NAME" \
+            -configuration Release \
+            -sdk iphoneos \
+            -arch arm64 \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            AD_HOC_CODE_SIGNING_ALLOWED=YES
 
       - name: Upload App Package
         uses: actions/upload-artifact@v4
         with:
           name: ios-app-bundle
-          # Сохраняем все найденные .app папки
           path: build/**/*.app
           if-no-files-found: error
