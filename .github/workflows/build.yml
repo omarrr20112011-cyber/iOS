@@ -22,7 +22,16 @@ jobs:
         run: |
           briefcase create ios --no-input
 
-      - name: Build for Simulator (No Signing Required)
+      - name: Create Temporary Keychain for Signing
+        run: |
+          # Создаем временную связку ключей, чтобы Xcode не ругался на отсутствие подписи
+          security create-keychain -p "" build.keychain
+          security list-keychains -s build.keychain
+          security default-keychain -s build.keychain
+          security unlock-keychain -p "" build.keychain
+          security set-keychain-settings -t 3600 -u build.keychain
+
+      - name: Build with Xcode (Fake Sign)
         run: |
           PROJECT_PATH=$(find build -name "*.xcodeproj" | head -n 1)
           PROJECT_DIR=$(dirname "$PROJECT_PATH")
@@ -30,16 +39,20 @@ jobs:
           
           cd "$PROJECT_DIR"
           
-          # Собираем для симулятора — это обходит ошибку 65
+          # Собираем с использованием "Ad-Hoc" подписи (-)
+          # Это официальный способ Apple собрать приложение без реального сертификата
           xcodebuild build \
             -project "$PROJECT_NAME.xcodeproj" \
             -scheme "$PROJECT_NAME" \
             -configuration Release \
-            -sdk iphonesimulator \
+            -sdk iphoneos \
             -arch arm64 \
-            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGN_IDENTITY="-" \
             CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGN_IDENTITY=""
+            CODE_SIGNING_ALLOWED=YES \
+            AD_HOC_CODE_SIGNING_ALLOWED=YES \
+            DEVELOPMENT_TEAM="" \
+            PROVISIONING_PROFILE_SPECIFIER=""
 
       - name: Upload App Package
         uses: actions/upload-artifact@v4
