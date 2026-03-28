@@ -20,31 +20,35 @@ jobs:
 
       - name: Create iOS App
         run: |
-          # Только создаем проект Xcode, не запуская сборку через Briefcase
           briefcase create ios --no-input
 
-      - name: Build with Xcode Direct
+      - name: Build with Xcode Archive Mode
         run: |
-          # Находим проект и собираем его стандартными средствами macOS
           PROJECT_PATH=$(find build -name "*.xcodeproj" | head -n 1)
           PROJECT_DIR=$(dirname "$PROJECT_PATH")
           PROJECT_NAME=$(basename "$PROJECT_PATH" .xcodeproj)
           
           cd "$PROJECT_DIR"
-          xcodebuild build \
+          
+          # Собираем "Архив" — это более глубокая сборка, которая часто обходит ошибку 65
+          xcodebuild archive \
             -project "$PROJECT_NAME.xcodeproj" \
             -scheme "$PROJECT_NAME" \
             -configuration Release \
             -sdk iphoneos \
-            -arch arm64 \
+            -archivePath "./build/$PROJECT_NAME.xcarchive" \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGN_IDENTITY="" \
-            AD_HOC_CODE_SIGNING_ALLOWED=YES
+            AD_HOC_CODE_SIGNING_ALLOWED=YES \
+            -allowProvisioningUpdates
 
       - name: Upload App Package
         uses: actions/upload-artifact@v4
         with:
           name: ios-app-bundle
-          path: build/**/*.app
+          # Ищем приложение внутри созданного архива
+          path: |
+            build/**/*.xcarchive/Products/Applications/*.app
+            build/**/*.app
           if-no-files-found: error
