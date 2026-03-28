@@ -22,7 +22,7 @@ jobs:
         run: |
           briefcase create ios --no-input
 
-      - name: Build with Xcode Archive Mode
+      - name: Build for Simulator (No Signing Required)
         run: |
           PROJECT_PATH=$(find build -name "*.xcodeproj" | head -n 1)
           PROJECT_DIR=$(dirname "$PROJECT_PATH")
@@ -30,25 +30,20 @@ jobs:
           
           cd "$PROJECT_DIR"
           
-          # Собираем "Архив" — это более глубокая сборка, которая часто обходит ошибку 65
-          xcodebuild archive \
+          # Собираем для симулятора — это обходит ошибку 65
+          xcodebuild build \
             -project "$PROJECT_NAME.xcodeproj" \
             -scheme "$PROJECT_NAME" \
             -configuration Release \
-            -sdk iphoneos \
-            -archivePath "./build/$PROJECT_NAME.xcarchive" \
+            -sdk iphonesimulator \
+            -arch arm64 \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGN_IDENTITY="" \
-            AD_HOC_CODE_SIGNING_ALLOWED=YES \
-            -allowProvisioningUpdates
+            CODE_SIGN_IDENTITY=""
 
       - name: Upload App Package
         uses: actions/upload-artifact@v4
         with:
           name: ios-app-bundle
-          # Ищем приложение внутри созданного архива
-          path: |
-            build/**/*.xcarchive/Products/Applications/*.app
-            build/**/*.app
+          path: build/**/*.app
           if-no-files-found: error
