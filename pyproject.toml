@@ -4,16 +4,13 @@ bundle = "com.skullstudio"
 version = "0.0.1"
 author = "Skull Studio"
 url = "https://skullstudio.com"
-license = "MIT"
 description = "Skull Hub iOS App"
 
 [tool.briefcase.app.skullhub]
 formal_name = "Skull Hub"
 description = "Skull Hub iOS App"
-sources = ["myproject"]
-# Указываем вашу иконку (без расширения .png)
+sources = ["skullhub"]
 icon = "logo"
-# Если вашему коду нужны библиотеки, добавьте их в список ниже
 requires = [
     "toga-iOS",
 ]
@@ -25,3 +22,4 @@ requires = [
 
 [tool.briefcase.app.skullhub.license]
 text = "MIT"
+
