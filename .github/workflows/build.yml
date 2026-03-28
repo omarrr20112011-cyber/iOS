@@ -24,7 +24,6 @@ jobs:
 
       - name: Create Temporary Keychain for Signing
         run: |
-          # Создаем временное хранилище ключей для обхода проверки подписи
           security create-keychain -p "" build.keychain
           security list-keychains -s build.keychain
           security default-keychain -s build.keychain
@@ -32,14 +31,12 @@ jobs:
 
       - name: Build with Xcode (Ad-Hoc)
         run: |
-          # Находим проект и собираем его
           PROJECT_PATH=$(find build -name "*.xcodeproj" | head -n 1)
           PROJECT_DIR=$(dirname "$PROJECT_PATH")
           PROJECT_NAME=$(basename "$PROJECT_PATH" .xcodeproj)
           
           cd "$PROJECT_DIR"
           
-          # Сборка Ad-Hoc (подпись "-") — это легальный способ для Xcode собрать бинарник без аккаунта
           xcodebuild build \
             -project "$PROJECT_NAME.xcodeproj" \
             -scheme "$PROJECT_NAME" \
@@ -49,15 +46,22 @@ jobs:
             CODE_SIGN_IDENTITY="-" \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGNING_ALLOWED=YES \
-            AD_HOC_CODE_SIGNING_ALLOWED=YES
+            AD_HOC_CODE_SIGNING_ALLOWED=YES \
+            -derivedDataPath "build/DerivedData"
+
+      - name: Collect Build Artifacts
+        run: |
+          # Создаем отдельную папку для результата
+          mkdir -p output
+          # Ищем все .app файлы и копируем их в папку output
+          find . -name "*.app" -type d -exec cp -R {} output/ \;
+          echo "Found apps:"
+          ls -R output
 
       - name: Upload App Package
         uses: actions/upload-artifact@v4
         with:
           name: ios-app-bundle
-          # Ищем .app везде, где его мог оставить Xcode
-          path: |
-            **/build/Release-iphoneos/*.app
-            **/Products/Release-iphoneos/*.app
-            **/*.app
+          # Теперь мы берем файл из гарантированного места
+          path: output/*.app
           if-no-files-found: error
