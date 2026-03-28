@@ -5,12 +5,13 @@ jobs:
   build:
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
-          python-version: '3.10'
+          python-version: '3.11'
 
       - name: Install Briefcase
         run: |
@@ -19,11 +20,16 @@ jobs:
 
       - name: Create iOS App
         run: |
+          # Используем --no-input для автоматической сборки
           briefcase create ios --no-input
           briefcase build ios --no-input
 
-      - name: Upload IPA (Artifact)
-        uses: actions/upload-artifact@v3
+      - name: Upload App Package
+        uses: actions/upload-artifact@v4
         with:
-          name: ios-app-package
-          path: build/*/ios/xcode/build/Release-iphoneos/*.app
+          name: ios-app-bundle
+          # Путь к собранному приложению в папке build
+          path: |
+            build/*/ios/xcode/build/Release-iphoneos/*.app
+            build/*/ios/xcode/build/Release-iphoneos/*.ipa
+          if-no-files-found: error
