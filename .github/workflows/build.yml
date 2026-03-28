@@ -22,21 +22,37 @@ jobs:
         run: |
           briefcase create ios --no-input
 
+      - name: Force Disable Code Signing
+        run: |
+          # Находим файл настроек проекта Xcode
+          PROJECT_FILE=$(find build -name "project.pbxproj" | head -n 1)
+          echo "Patching project file: $PROJECT_FILE"
+          
+          # Принудительно отключаем подпись внутри самого файла проекта
+          sed -i '' 's/CODE_SIGNING_ALLOWED = YES/CODE_SIGNING_ALLOWED = NO/g' "$PROJECT_FILE"
+          sed -i '' 's/CODE_SIGNING_REQUIRED = YES/CODE_SIGNING_REQUIRED = NO/g' "$PROJECT_FILE"
+          sed -i '' 's/DevelopmentTeam = [A-Z0-9]*/DevelopmentTeam = ""/g' "$PROJECT_FILE"
+          sed -i '' 's/PROVISIONING_PROFILE_SPECIFIER = "[^"]*"/PROVISIONING_PROFILE_SPECIFIER = ""/g' "$PROJECT_FILE"
+
       - name: Build with Xcode Direct
         run: |
-          # Ищем файл проекта Xcode и собираем его напрямую
-          cd build/skullhub/ios/xcode
-          xcodebuild -project "Skull Hub.xcodeproj" \
-                     -scheme "Skull Hub" \
+          # Находим проект и папку
+          PROJECT_PATH=$(find build -name "*.xcodeproj" | head -n 1)
+          PROJECT_DIR=$(dirname "$PROJECT_PATH")
+          PROJECT_NAME=$(basename "$PROJECT_PATH" .xcodeproj)
+          
+          cd "$PROJECT_DIR"
+          xcodebuild -project "$PROJECT_NAME.xcodeproj" \
+                     -scheme "$PROJECT_NAME" \
                      -configuration Release \
                      -sdk iphoneos \
                      -arch arm64 \
                      CODE_SIGNING_ALLOWED=NO \
-                     CODE_SIGN_IDENTITY="" \
                      CODE_SIGNING_REQUIRED=NO \
-                     CODE_SIGN_ENTITLEMENTS="" \
-                     BITCODE_GENERATION_MODE=bitcode \
-                     clean build
+                     CODE_SIGN_IDENTITY="" \
+                     AD_HOC_CODE_SIGNING_ALLOWED=YES \
+                     -allowProvisioningUpdates \
+                     build
 
       - name: Upload App Package
         uses: actions/upload-artifact@v4
