@@ -20,16 +20,17 @@ jobs:
 
       - name: Create iOS App
         run: |
-          # Используем --no-input для автоматической сборки
+          # Создаем структуру проекта Xcode
           briefcase create ios --no-input
+          # Компилируем приложение
           briefcase build ios --no-input
 
       - name: Upload App Package
         uses: actions/upload-artifact@v4
         with:
           name: ios-app-bundle
-          # Путь к собранному приложению в папке build
+          # Ищем все файлы .app и .ipa во всех подпапках build
           path: |
-            build/*/ios/xcode/build/Release-iphoneos/*.app
-            build/*/ios/xcode/build/Release-iphoneos/*.ipa
+            build/**/*.app
+            build/**/*.ipa
           if-no-files-found: error
