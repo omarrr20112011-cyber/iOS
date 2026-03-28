@@ -20,20 +20,27 @@ jobs:
 
       - name: Create iOS App
         run: |
-          # Создаем структуру проекта Xcode для iOS
           briefcase create ios --no-input
 
-      - name: Build iOS App for Device
+      - name: Build with Xcode Direct
         run: |
-          # Собираем приложение для реального устройства (ARM64)
-          # Передаем параметры Xcode, чтобы он не требовал подпись сертификатом
-          briefcase build ios --device --no-input -- -codeSignIdentity="" -codeSignStyle=Manual CODE_SIGNING_ALLOWED=NO
+          # Ищем файл проекта Xcode и собираем его напрямую
+          cd build/skullhub/ios/xcode
+          xcodebuild -project "Skull Hub.xcodeproj" \
+                     -scheme "Skull Hub" \
+                     -configuration Release \
+                     -sdk iphoneos \
+                     -arch arm64 \
+                     CODE_SIGNING_ALLOWED=NO \
+                     CODE_SIGN_IDENTITY="" \
+                     CODE_SIGNING_REQUIRED=NO \
+                     CODE_SIGN_ENTITLEMENTS="" \
+                     BITCODE_GENERATION_MODE=bitcode \
+                     clean build
 
       - name: Upload App Package
         uses: actions/upload-artifact@v4
         with:
           name: ios-app-bundle
-          # Ищем папку .app в результатах сборки
           path: build/**/*.app
           if-no-files-found: error
-
